@@ -6,12 +6,12 @@ open Color
 
 type param = {
   radius : float; (* pixels *)
-  intensity : float; (* 0..1 *)
-  debug : bool;
+  intensity : float; (* scalar more or less around 1.0 *)
+  diff_mode : bool;
 }
 
 let default_radius = 40.
-let default_intensity = 1.0
+let default_intensity = 3.0
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -61,7 +61,7 @@ let remove_purple_blur param w h m purple_blur =
       let b_diff = min bl (max (b - g) 0) in
       let r_diff = min (max (r - g) 0) (b_diff / 3) in
       let pixel =
-        if param.debug then
+        if param.diff_mode then
           {
             r = r_diff;
             g = 0;
@@ -98,15 +98,15 @@ let run param infile outfile =
 let main () =
   let intensity = ref default_intensity in
   let radius = ref default_radius in
-  let debug = ref false in
+  let diff_mode = ref false in
   let files = ref [] in
   let options = [
     "-i", Arg.Set_float intensity,
     sprintf "<float>  Fraction of purple to remove (default: %g)" !intensity;
     "-r", Arg.Set_float radius,
     sprintf "<float>  Blur radius (default: %g pixels)" !radius;
-    "-debug", Arg.Set debug,
-    "Output mask instead of final image";
+    "-diff", Arg.Set diff_mode,
+    "Output purple mask that would be substracted to the original image";
   ]
   in
   let anon_fun s =
@@ -127,7 +127,7 @@ This program attempts to remove purple fringing from photos (JPEG format).
   let param = {
     radius = !radius;
     intensity = !intensity;
-    debug = !debug;
+    diff_mode = !diff_mode;
   }
   in
   run param infile outfile
