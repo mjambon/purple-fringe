@@ -29,21 +29,25 @@ let gaussian_mask rmax sigma =
   m
 
 let make_purple_blur param w h m =
-  let rmax = truncate (ceil (3. *. param.radius)) in
+  let rmax = truncate (ceil (2. *. param.radius)) in
   let mask = gaussian_mask rmax param.radius in
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
     for j = 0 to h - 1 do
       let { r; g; b } = Rgb24.get m i j in
       let p = float (min r b) *. param.intensity in
+      let acc = ref 0. in
       for k1 = -rmax to rmax do
-        for k2 = -rmax to rmax do
-          let i' = i + k1 in
-          let j' = j + k2 in
-          if i' >= 0 && i' < w && j' >= 0 && j' < h then
-            blur.(i).(j) <- blur.(i).(j) +. p *. mask.(k1+rmax).(k2+rmax)
-        done
-      done
+        let mask1 = mask.(k1+rmax) in
+        let i' = i + k1 in
+        if i' >= 0 && i' < w then
+          for k2 = -rmax to rmax do
+            let j' = j + k2 in
+            if j' >= 0 && j' < h then
+              acc := !acc +. p *. Array.unsafe_get mask1 (k2+rmax)
+          done
+      done;
+      blur.(i).(j) <- !acc
     done
   done;
   blur
