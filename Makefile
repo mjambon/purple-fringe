@@ -3,8 +3,23 @@ purple_fringe: purple_fringe.ml
 		-package camlimages -linkpkg
 
 .PHONY: examples
-examples: purple0-fixed.jpg purple1-fixed.jpg purple2-fixed.jpg \
-          purple3-fixed.jpg wikipedia-horsie-fixed.jpg
+EXAMPLES = \
+  wikipedia-horsie \
+  butterfly \
+  eye \
+  purple-sky \
+  tree \
+  purple0 \
+  purple1 \
+  purple2 \
+  purple3
+
+EXAMPLES_IN = $(addsuffix .jpg, $(EXAMPLES))
+EXAMPLES_OUT = $(addsuffix -fixed.jpg, $(EXAMPLES))
+
+examples: examples.html
+examples.html: $(EXAMPLES_OUT) Makefile
+	./make-examples.sh $(EXAMPLES)
 
 %-fixed.jpg: %.jpg purple_fringe
 	./purple_fringe $< $@
