@@ -11,7 +11,7 @@ type param = {
 }
 
 let default_radius = 40.
-let default_intensity = 3.0
+let default_intensity = 2.0
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -28,27 +28,51 @@ let gaussian_mask rmax sigma =
     m;
   m
 
+let sum_window m imin imax jmin jmax =
+  let r_acc = ref 0 in
+  let g_acc = ref 0 in
+  let b_acc = ref 0 in
+  for i = imin to imax do
+    for j = jmin to jmax do
+      let { r; g; b } = Rgb24.get m i j in
+      r_acc := r + !r_acc;
+      g_acc := g + !g_acc;
+      b_acc := b + !b_acc;
+    done
+  done;
+  (!r_acc, !g_acc, !b_acc)
+
 let make_purple_blur param w h m =
   let rmax = truncate (ceil (2. *. param.radius)) in
+  let r0 = rmax / 10 in
+  let d0 = 2 * r0 + 1 in
   let mask = gaussian_mask rmax param.radius in
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
-    for j = 0 to h - 1 do
-      let { r; g; b } = Rgb24.get m i j in
-      let p = float (min (3*r) b) *. param.intensity in
-      let acc = ref 0. in
-      for k1 = -rmax to rmax do
-        let mask1 = mask.(k1+rmax) in
-        let i' = i + k1 in
-        if i' >= 0 && i' < w then
-          for k2 = -rmax to rmax do
-            let j' = j + k2 in
-            if j' >= 0 && j' < h then
-              acc := !acc +. p *. Array.unsafe_get mask1 (k2+rmax)
-          done
-      done;
-      blur.(i).(j) <- !acc
-    done
+    if i mod d0 = 0 then
+      for j = 0 to h - 1 do
+        if j mod d0 = 0 then
+          let r, g, b =
+            sum_window m
+              (max 0 (i - r0)) (min (w - 1) (i + r0))
+              (max 0 (j - r0)) (min (h - 1) (j + r0))
+          in
+          let p = float (min (3*r) b) *. param.intensity in
+          let acc = ref 0. in
+          for k1 = -rmax to rmax do
+            let mask1 = mask.(k1+rmax) in
+            let i' = i + k1 in
+            if i' >= 0 && i' < w then
+              let blur_i' = blur.(i') in
+              for k2 = -rmax to rmax do
+                let j' = j + k2 in
+                if j' >= 0 && j' < h then
+                  blur_i'.(j') <-
+                    blur_i'.(j') +. p *. Array.unsafe_get mask1 (k2+rmax)
+              done
+          done;
+          blur.(i).(j) <- !acc
+      done
   done;
   blur
 
