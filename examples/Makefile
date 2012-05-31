@@ -7,7 +7,6 @@ EXAMPLES = \
   snake \
   purple-sky \
   purple0 \
-  purple1 \
   purple2 \
   purple3
 
@@ -20,6 +19,12 @@ examples.html: $(EXAMPLES_OUT) Makefile
 
 %-fixed.jpg: %.jpg ../src/unpurple
 	../src/unpurple $< $@
+
+.PHONY: install
+install:
+	mkdir -p $$WWW/purple-fringe-examples
+	cp examples.html $(EXAMPLES_IN) $(EXAMPLES_OUT) \
+		$$WWW/purple-fringe-examples
 
 .PHONY: clean
 clean:
