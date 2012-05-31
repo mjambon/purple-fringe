@@ -24,6 +24,8 @@ from digital photos.
         echo "\
 <tr><td style=\"text-align:right\"><img src=\"$x.jpg\" alt=\"input\"></td>
     <td><img src=\"$x-fixed.jpg\" alt=\"output\"></td></tr>
+<tr><td></td>
+    <td><img src=\"$x-diff.jpg\" alt=\"difference\"></td></tr>
 "
     done
     echo "\
