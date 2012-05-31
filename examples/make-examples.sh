@@ -22,8 +22,8 @@ from digital photos.
 "
     for x in $*; do
         echo "\
-<tr><td style=\"text-align:right\"><img src=\"$x.jpg\"/></td>
-    <td><img src=\"$x-fixed.jpg\"/></td></tr>
+<tr><td style=\"text-align:right\"><img src=\"$x.jpg\" alt=\"input\"></td>
+    <td><img src=\"$x-fixed.jpg\" alt=\"output\"></td></tr>
 "
     done
     echo "\

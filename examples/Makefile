@@ -22,9 +22,9 @@ examples.html: $(EXAMPLES_OUT) Makefile
 
 .PHONY: install
 install:
-	mkdir -p $$WWW/purple-fringe-examples
+	mkdir -p $$WWW/purple-fringe
 	cp examples.html $(EXAMPLES_IN) $(EXAMPLES_OUT) \
-		$$WWW/purple-fringe-examples
+		$$WWW/purple-fringe
 
 .PHONY: clean
 clean:
