@@ -1,0 +1,19 @@
+This describes the installation of the standalone prototype 
+implemented in OCaml.
+
+Build-time requirements
+-----------------------
+
+- GNU make, bash and other Unix utilities
+- OCaml
+- Camlimages built with JPEG support
+
+Compilation
+-----------
+
+$ make
+
+Installation
+------------
+
+$ cp src/unpurple ~/bin/ # or wherever you want
