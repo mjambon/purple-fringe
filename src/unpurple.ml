@@ -10,8 +10,8 @@ type param = {
   diff_mode : bool;
 }
 
-let default_radius = 40.
-let default_intensity = 2.0
+let default_radius = 10.
+let default_intensity = 2.
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -46,6 +46,7 @@ let make_purple_blur param w h m =
   let rmax = truncate (ceil (2. *. param.radius)) in
   let r0 = rmax / 10 in
   let d0 = 2 * r0 + 1 in
+  printf "rmax=%i r0=%i d0=%i\n%!" rmax r0 d0;
   let mask = gaussian_mask rmax param.radius in
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
@@ -57,7 +58,11 @@ let make_purple_blur param w h m =
               (max 0 (i - r0)) (min (w - 1) (i + r0))
               (max 0 (j - r0)) (min (h - 1) (j + r0))
           in
-          let p = float (min (3*r) b) *. param.intensity in
+          let p =
+            let thresh = 150 in
+            let white = (max 0 (b - thresh)) * 255 / (255-thresh) in
+            float white *. param.intensity
+          in
           let acc = ref 0. in
           for k1 = -rmax to rmax do
             let mask1 = mask.(k1+rmax) in

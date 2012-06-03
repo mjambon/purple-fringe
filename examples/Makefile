@@ -8,7 +8,9 @@ EXAMPLES = \
   purple-sky \
   purple0 \
   purple2 \
-  purple3
+  purple3 \
+  difficult \
+  worst-case
 
 EXAMPLES_IN = $(addsuffix .jpg, $(EXAMPLES))
 EXAMPLES_OUT = $(addsuffix -fixed.jpg, $(EXAMPLES))
