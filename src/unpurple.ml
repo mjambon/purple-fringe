@@ -9,11 +9,13 @@ type mode = Normal | Diff | Blur | Pred
 type param = {
   radius : float; (* pixels *)
   intensity : float; (* scalar more or less around 1.0 *)
+  min_brightness : float; (* positive scalar smaller 1.0 *)
   mode : mode;
 }
 
 let default_radius = 5.
 let default_intensity = 1.
+let default_min_brightness = 0.
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -68,7 +70,11 @@ let make_purple_blur param w h m =
               (max 0 (i - r0)) (min (w - 1) (i + r0))
               (max 0 (j - r0)) (min (h - 1) (j + r0))
           in
-          let p = area *. param.intensity *. b in
+          let p =
+            let thresh = param.min_brightness in
+            let white = (max 0. (b -. thresh)) *. 1. /. (1.-.thresh) in
+            area *. param.intensity *. white
+          in
           for k1 = -rmax to rmax do
             let mask1 = mask.(k1+rmax) in
             let i' = i + k1 in
@@ -149,17 +155,25 @@ let run param infile outfile =
 let main () =
   let intensity = ref default_intensity in
   let radius = ref default_radius in
+  let min_brightness = ref default_min_brightness in
   let mode = ref Normal in
   let files = ref [] in
   let options = [
     "-i", Arg.Set_float intensity,
     sprintf "<float>  Fraction of purple to remove (default: %g)" !intensity;
+
+    "-m", Arg.Set_float min_brightness,
+    sprintf "<float>  Minimum brightness (default: %g)" !min_brightness;
+
     "-r", Arg.Set_float radius,
     sprintf "<float>  Blur radius (default: %g pixels)" !radius;
+
     "-diff", Arg.Unit (fun () -> mode := Diff),
     "Output purple mask that would be substracted to the original image";
+
     "-blur", Arg.Unit (fun () -> mode := Blur),
     "Output blur used to simulate lack of focus of the purple light";
+
     "-pred", Arg.Unit (fun () -> mode := Pred),
     "Output predicted purple fringes";
   ]
@@ -182,6 +196,7 @@ This program attempts to remove purple fringing from photos (JPEG format).
   let param = {
     radius = !radius;
     intensity = !intensity;
+    min_brightness = !min_brightness;
     mode = !mode;
   }
   in
