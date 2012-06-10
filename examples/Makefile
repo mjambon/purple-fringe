@@ -14,14 +14,24 @@ EXAMPLES = \
 
 EXAMPLES_IN = $(addsuffix .jpg, $(EXAMPLES))
 EXAMPLES_OUT = $(addsuffix -fixed.jpg, $(EXAMPLES))
+EXAMPLES_BLUR = $(addsuffix -blur.jpg, $(EXAMPLES))
+EXAMPLES_PRED = $(addsuffix -pred.jpg, $(EXAMPLES))
 EXAMPLES_DIFF = $(addsuffix -diff.jpg, $(EXAMPLES))
 
 examples: examples.html
-examples.html: $(EXAMPLES_OUT) $(EXAMPLES_DIFF) Makefile
+examples.html: $(EXAMPLES_OUT) $(EXAMPLES_BLUR) \
+               $(EXAMPLES_PRED) $(EXAMPLES_DIFF) \
+               Makefile make-examples.sh
 	./make-examples.sh $(EXAMPLES)
 
 %-fixed.jpg: %.jpg ../src/unpurple
 	../src/unpurple $< $@
+
+%-blur.jpg: %.jpg ../src/unpurple
+	../src/unpurple -blur $< $@
+
+%-pred.jpg: %.jpg ../src/unpurple
+	../src/unpurple -pred $< $@
 
 %-diff.jpg: %.jpg ../src/unpurple
 	../src/unpurple -diff $< $@
@@ -29,8 +39,9 @@ examples.html: $(EXAMPLES_OUT) $(EXAMPLES_DIFF) Makefile
 .PHONY: install
 install:
 	mkdir -p $$WWW/purple-fringe
-	cp examples.html $(EXAMPLES_IN) $(EXAMPLES_OUT) $(EXAMPLES_DIFF) \
-		$$WWW/purple-fringe
+	cp examples.html \
+	  $(EXAMPLES_IN) $(EXAMPLES_OUT) $(EXAMPLES_PRED) $(EXAMPLES_DIFF) \
+          $$WWW/purple-fringe
 
 .PHONY: clean
 clean:

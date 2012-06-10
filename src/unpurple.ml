@@ -4,14 +4,16 @@
 open Printf
 open Color
 
+type mode = Normal | Diff | Blur | Pred
+
 type param = {
   radius : float; (* pixels *)
   intensity : float; (* scalar more or less around 1.0 *)
-  diff_mode : bool;
+  mode : mode;
 }
 
-let default_radius = 10.
-let default_intensity = 2.
+let default_radius = 5.
+let default_intensity = 1.
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -28,7 +30,8 @@ let gaussian_mask rmax sigma =
     m;
   m
 
-let sum_window m imin imax jmin jmax =
+let average_window m imin imax jmin jmax =
+  (*printf "window: imin=%i imax=%i jmin=%i jmax=%i\n" imin imax jmin jmax;*)
   let r_acc = ref 0 in
   let g_acc = ref 0 in
   let b_acc = ref 0 in
@@ -40,30 +43,32 @@ let sum_window m imin imax jmin jmax =
       b_acc := b + !b_acc;
     done
   done;
-  (!r_acc, !g_acc, !b_acc)
+  let area = (max 0 (imax - imin + 1)) * (max 0 (jmax - jmin + 1)) in
+  let farea = float area in
+  let maxint = farea *. 255. in
+  (float !r_acc /. maxint,
+   float !g_acc /. maxint,
+   float !b_acc /. maxint,
+   farea)
+
 
 let make_purple_blur param w h m =
   let rmax = truncate (ceil (2. *. param.radius)) in
   let r0 = rmax / 10 in
   let d0 = 2 * r0 + 1 in
-  printf "rmax=%i r0=%i d0=%i\n%!" rmax r0 d0;
+  (*printf "rmax=%i r0=%i d0=%i\n%!" rmax r0 d0;*)
   let mask = gaussian_mask rmax param.radius in
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
     if i mod d0 = 0 then
       for j = 0 to h - 1 do
         if j mod d0 = 0 then
-          let r, g, b =
-            sum_window m
+          let r, g, b, area =
+            average_window m
               (max 0 (i - r0)) (min (w - 1) (i + r0))
               (max 0 (j - r0)) (min (h - 1) (j + r0))
           in
-          let p =
-            let thresh = 150 in
-            let white = (max 0 (b - thresh)) * 255 / (255-thresh) in
-            float white *. param.intensity
-          in
-          let acc = ref 0. in
+          let p = area *. param.intensity *. b in
           for k1 = -rmax to rmax do
             let mask1 = mask.(k1+rmax) in
             let i' = i + k1 in
@@ -71,12 +76,14 @@ let make_purple_blur param w h m =
               let blur_i' = blur.(i') in
               for k2 = -rmax to rmax do
                 let j' = j + k2 in
-                if j' >= 0 && j' < h then
-                  blur_i'.(j') <-
-                    blur_i'.(j') +. p *. Array.unsafe_get mask1 (k2+rmax)
+                if j' >= 0 && j' < h then (
+                  let contrib = p *. Array.unsafe_get mask1 (k2+rmax) in
+                  (*printf "i=%i j=%i i'=%i j'=%i k1=%i k2=%i contrib=%g\n"
+                    i j i' j' k1 k2 contrib;*)
+                  blur_i'.(j') <- blur_i'.(j') +. contrib
+                )
               done
-          done;
-          blur.(i).(j) <- !acc
+          done
       done
   done;
   blur
@@ -86,22 +93,37 @@ let remove_purple_blur param w h m purple_blur =
   for i = 0 to w - 1 do
     for j = 0 to h - 1 do
       let { r; g; b } = Rgb24.get m i j in
-      let bl = min 255 (truncate purple_blur.(i).(j)) in
+      let bl = min 255 (truncate (255. *. purple_blur.(i).(j))) in
       let b_diff = min bl (max (b - g) 0) in
       let r_diff = min (max (r - g) 0) (b_diff / 3) in
       let pixel =
-        if param.diff_mode then
-          {
-            r = r_diff;
-            g = 0;
-            b = b_diff
-          }
-        else
-          {
-            r = r - r_diff;
-            g = g;
-            b = b - b_diff
-          }
+        match param.mode with
+            Normal ->
+              {
+                r = r - r_diff;
+                g = g;
+                b = b - b_diff
+              }
+          | Diff ->
+              {
+                r = r_diff;
+                g = 0;
+                b = b_diff
+              }
+          | Blur ->
+              {
+                r = bl;
+                g = bl;
+                b = bl;
+              }
+          | Pred ->
+              let b_diff_pred = max 0 (bl - g) in
+              let r_diff_pred = b_diff_pred / 3 in
+              {
+                r = r_diff_pred;
+                g = 0;
+                b = b_diff_pred;
+              }
       in
       Rgb24.set m2 i j pixel
     done
@@ -127,15 +149,19 @@ let run param infile outfile =
 let main () =
   let intensity = ref default_intensity in
   let radius = ref default_radius in
-  let diff_mode = ref false in
+  let mode = ref Normal in
   let files = ref [] in
   let options = [
     "-i", Arg.Set_float intensity,
     sprintf "<float>  Fraction of purple to remove (default: %g)" !intensity;
     "-r", Arg.Set_float radius,
     sprintf "<float>  Blur radius (default: %g pixels)" !radius;
-    "-diff", Arg.Set diff_mode,
+    "-diff", Arg.Unit (fun () -> mode := Diff),
     "Output purple mask that would be substracted to the original image";
+    "-blur", Arg.Unit (fun () -> mode := Blur),
+    "Output blur used to simulate lack of focus of the purple light";
+    "-pred", Arg.Unit (fun () -> mode := Pred),
+    "Output predicted purple fringes";
   ]
   in
   let anon_fun s =
@@ -156,7 +182,7 @@ This program attempts to remove purple fringing from photos (JPEG format).
   let param = {
     radius = !radius;
     intensity = !intensity;
-    diff_mode = !diff_mode;
+    mode = !mode;
   }
   in
   run param infile outfile

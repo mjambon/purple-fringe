@@ -22,10 +22,16 @@ from digital photos.
 "
     for x in $*; do
         echo "\
-<tr><td style=\"text-align:right\"><img src=\"$x.jpg\" alt=\"input\"></td>
-    <td><img src=\"$x-fixed.jpg\" alt=\"output\"></td></tr>
-<tr><td></td>
-    <td><img src=\"$x-diff.jpg\" alt=\"difference\"></td></tr>
+<tr><td style=\"text-align:right\">
+       <img src=\"$x.jpg\" alt=\"input\"
+            title=\"Original photo\"></td>
+    <td><img src=\"$x-fixed.jpg\" alt=\"output\"
+             title=\"Final photo\"></td></tr>
+<tr><td style=\"text-align:right\">
+    <img src=\"$x-pred.jpg\" alt=\"blur\"
+         title=\"Predicted purple fringing\"></td>
+    <td><img src=\"$x-diff.jpg\" alt=\"difference\"
+             title=\"Difference between original and final photo\"></td></tr>
 "
     done
     echo "\
