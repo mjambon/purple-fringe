@@ -6,6 +6,7 @@ EXAMPLES = \
   tree \
   snake \
   purple-sky \
+  purple-sky-gentle \
   purple0 \
   purple2 \
   purple3 \
@@ -18,8 +19,8 @@ EXAMPLES_DIFF = $(addsuffix -diff.jpg, $(EXAMPLES))
 
 examples: examples.html
 examples.html: $(EXAMPLES_IN) $(EXAMPLES_OUT) $(EXAMPLES_DIFF) \
-               Makefile make-examples.sh
-	./make-examples.sh $(EXAMPLES)
+               Makefile make-examples.sh ../src/unpurple
+	./make-examples.sh
 
 .PHONY: install
 install:

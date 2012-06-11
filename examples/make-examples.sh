@@ -50,11 +50,12 @@ In each example the default options are used unless otherwise indicated.
 <tr><th>Input</th><th>Output</th></tr>
 "
     sample wikipedia-horsie
-    sample butterfly
+    sample butterfly -minred 0.15
     sample eye
     sample tree
     sample snake
     sample purple-sky
+    sample purple-sky-gentle -minred 0.15
     sample purple0
     sample purple2
     sample purple3

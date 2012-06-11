@@ -4,18 +4,22 @@
 open Printf
 open Color
 
-type mode = Normal | Diff | Blur | Pred
+type mode = Normal | Diff | Blur
 
 type param = {
   radius : float; (* pixels *)
   intensity : float; (* scalar more or less around 1.0 *)
   min_brightness : float; (* positive scalar smaller 1.0 *)
+  min_red_to_blue_ratio : float;
+  max_red_to_blue_ratio : float;
   mode : mode;
 }
 
 let default_radius = 5.
 let default_intensity = 1.
 let default_min_brightness = 0.
+let default_min_red_to_blue_ratio = 0.
+let default_max_red_to_blue_ratio = 0.33
 
 let gaussian_mask rmax sigma =
   let len = 2 * rmax + 1 in
@@ -99,9 +103,35 @@ let remove_purple_blur param w h m purple_blur =
   for i = 0 to w - 1 do
     for j = 0 to h - 1 do
       let { r; g; b } = Rgb24.get m i j in
-      let bl = min 255 (truncate (255. *. purple_blur.(i).(j))) in
+      let bl = min 255. (255. *. purple_blur.(i).(j)) in
+
+(*
       let b_diff = min bl (max (b - g) 0) in
       let r_diff = min (max (r - g) 0) (b_diff / 3) in
+*)
+
+      (* amount of blue and red that would produce a grey if removed *)
+      let db = max (float b -. float g) 0. in
+      let dr = max (float r -. float g) 0. in
+      
+      (* maximum amount of blue that we accept to remove, ignoring red level *)
+      let mb = min bl db in
+
+      (* amount of red that we will remove, honoring max red:blue *)
+      let r_diff = min dr (mb *. param.max_red_to_blue_ratio) in
+
+      (* amount of blue that we will remove, honoring min red:blue *)
+      let b_diff =
+        if param.min_red_to_blue_ratio > 0. then
+          min mb (r_diff /. param.min_red_to_blue_ratio)
+        else
+          mb
+      in
+
+      let bl = truncate bl in
+      let r_diff = truncate r_diff in
+      let b_diff = truncate b_diff in
+
       let pixel =
         match param.mode with
             Normal ->
@@ -121,14 +151,6 @@ let remove_purple_blur param w h m purple_blur =
                 r = bl;
                 g = bl;
                 b = bl;
-              }
-          | Pred ->
-              let b_diff_pred = max 0 (bl - g) in
-              let r_diff_pred = b_diff_pred / 3 in
-              {
-                r = r_diff_pred;
-                g = 0;
-                b = b_diff_pred;
               }
       in
       Rgb24.set m2 i j pixel
@@ -156,11 +178,13 @@ let main () =
   let intensity = ref default_intensity in
   let radius = ref default_radius in
   let min_brightness = ref default_min_brightness in
+  let min_red_to_blue_ratio = ref default_min_red_to_blue_ratio in
+  let max_red_to_blue_ratio = ref default_max_red_to_blue_ratio in
   let mode = ref Normal in
   let files = ref [] in
   let options = [
     "-i", Arg.Set_float intensity,
-    sprintf "<float>  Fraction of purple to remove (default: %g)" !intensity;
+    sprintf "<float>  Intensity of purple fringe (default: %g)" !intensity;
 
     "-m", Arg.Set_float min_brightness,
     sprintf "<float>  Minimum brightness (default: %g)" !min_brightness;
@@ -168,14 +192,19 @@ let main () =
     "-r", Arg.Set_float radius,
     sprintf "<float>  Blur radius (default: %g pixels)" !radius;
 
+    "-minred", Arg.Set_float min_red_to_blue_ratio,
+    sprintf "<float>  Minimum red:blue ratio in the fringe (default: %g)"
+      !min_red_to_blue_ratio;
+
+    "-maxred", Arg.Set_float max_red_to_blue_ratio,
+    sprintf "<float>  Maximum red:blue ratio in the fringe (default: %g)"
+      !max_red_to_blue_ratio;
+
     "-diff", Arg.Unit (fun () -> mode := Diff),
     "Output purple mask that would be substracted to the original image";
 
     "-blur", Arg.Unit (fun () -> mode := Blur),
     "Output blur used to simulate lack of focus of the purple light";
-
-    "-pred", Arg.Unit (fun () -> mode := Pred),
-    "Output predicted purple fringes";
   ]
   in
   let anon_fun s =
@@ -197,6 +226,8 @@ This program attempts to remove purple fringing from photos (JPEG format).
     radius = !radius;
     intensity = !intensity;
     min_brightness = !min_brightness;
+    min_red_to_blue_ratio = !min_red_to_blue_ratio;
+    max_red_to_blue_ratio = !max_red_to_blue_ratio;
     mode = !mode;
   }
   in
