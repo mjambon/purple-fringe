@@ -21,8 +21,11 @@ sample () {
              title=\"Final photo\"></td></tr>
 $options
 <tr><td></td>
-    <td><img src=\"$x-diff.jpg\" alt=\"difference\"
-             title=\"Difference between original and final photo\"></td></tr>
+    <td><img src=\"$x-diff.jpg\" alt=\"difference\" class=\"diff\"
+             title=\"Difference between original and final photo\">
+    </td>
+    </tr>
+<tr><td colspan=\"2\" class=\"spacer\"></td></tr>
 "
 }
 
@@ -34,6 +37,29 @@ print () {
 <head>
 <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
 <title>Purple fringe removal examples</title>
+<style type=\"text/css\">
+body {
+  font-family: arial,sans-serif;
+  color: #ffffff;
+  background-color: #000000;
+  margin: 0px;
+  padding: 1em;
+}
+a:link {
+  color: #ffffff;
+}
+a:visited {
+  color: #ffffff;
+}
+img.diff {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #202020;
+}
+td.spacer {
+  padding-top: 50px;
+}
+</style>
 </head>
 <body>
 <h1>Purple fringe removal examples</h1>
@@ -47,7 +73,7 @@ from digital photos.
 In each example the default options are used unless otherwise indicated.
 </p>
 <table>
-<tr><th>Input</th><th>Output</th></tr>
+<tr><td colspan=\"2\" class=\"spacer\"></td></tr>
 "
     sample wikipedia-horsie
     sample butterfly -minred 0.15
