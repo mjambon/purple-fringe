@@ -1,6 +1,3 @@
-(* ocamlfind ocamlopt -o purple_fringe purple_fringe.ml \
-     -package camlimages -linkpkg *)
-
 open Printf
 open Color
 
@@ -21,81 +18,109 @@ let default_min_brightness = 0.
 let default_min_red_to_blue_ratio = 0.
 let default_max_red_to_blue_ratio = 0.33
 
-let gaussian_mask rmax sigma =
-  let len = 2 * rmax + 1 in
-  let m = Array.make_matrix len len 0. in
-  for i = -rmax to rmax do
-    for j = -rmax to rmax do
-      let r2 = float (i * i + j * j) in
-      m.(i+rmax).(j+rmax) <- exp (-. r2 /. (2. *. sigma ** 2.))
-    done
-  done;
-  let total = Array.fold_left (Array.fold_left (+.)) 0. m in
-  Array.iteri
-    (fun i a -> Array.iteri (fun j x -> m.(i).(j) <- x /. total) a)
-    m;
-  m
+let dims m =
+  let n1 = Array.length m in
+  if n1 = 0 then 0, 0
+  else n1, Array.length m.(0)
 
-let average_window m imin imax jmin jmax =
-  (*printf "window: imin=%i imax=%i jmin=%i jmax=%i\n" imin imax jmin jmax;*)
-  let r_acc = ref 0 in
-  let g_acc = ref 0 in
-  let b_acc = ref 0 in
-  for i = imin to imax do
-    for j = jmin to jmax do
-      let { r; g; b } = Rgb24.get m i j in
-      r_acc := r + !r_acc;
-      g_acc := g + !g_acc;
-      b_acc := b + !b_acc;
+let init_acc radius a =
+  let n = Array.length a in
+  if n = 0 then 0.
+  else
+    let acc = ref 0. in
+    acc := float (radius+2) *. a.(0);
+    for i = 1 to radius - 1 do
+      acc := !acc +. a.(min (n-1) i)
+    done;
+    !acc
+
+let init_acc_dim2 radius m j =
+  let n = Array.length m in
+  if n = 0 then 0.
+  else
+    let acc = ref 0. in
+    acc := float (radius+2) *. m.(0).(j);
+    for i = 1 to radius - 1 do
+      acc := !acc +. m.(min (n-1) i).(j)
+    done;
+    !acc
+
+let motion_blur_dim1 radius m =
+  let n1, n2 = dims m in
+  let w = float (2 * radius + 1) in
+  for i = 0 to n1 - 1 do
+    let a = m.(i) in
+    let b = Array.make n2 0. in
+    let acc = ref (init_acc radius a) in
+    for j = 0 to n2 - 1 do
+      acc := !acc
+             -. a.(max 0 (j-1 - radius))
+             +. a.(min (n2-1) (j + radius));
+      b.(j) <- !acc /. w;
+    done;
+    m.(i) <- b
+  done
+
+let motion_blur_dim2 radius m =
+  let n1, n2 = dims m in
+  let w = float (2 * radius + 1) in
+  for j = 0 to n2 - 1 do
+    let b = Array.make n1 0. in
+    let acc = ref (init_acc_dim2 radius m j) in
+    for i = 0 to n1 - 1 do
+      acc := !acc
+             -. m.(max 0 (i-1 - radius)).(j)
+             +. m.(min (n1-1) (i + radius)).(j);
+      b.(i) <- !acc /. w;
+    done;
+    for i = 0 to n1 - 1 do
+      m.(i).(j) <- b.(i)
     done
-  done;
-  let area = (max 0 (imax - imin + 1)) * (max 0 (jmax - jmin + 1)) in
-  let farea = float area in
-  let maxint = farea *. 255. in
-  (float !r_acc /. maxint,
-   float !g_acc /. maxint,
-   float !b_acc /. maxint,
-   farea)
+  done
+
+let box_blur radius m =
+  motion_blur_dim1 radius m;
+  motion_blur_dim2 radius m
+
+(*
+  0/2 -> 0
+  1/2 -> 1
+  2/2 -> 1
+  3/2 -> 2
+  ...
+*)
+let div_up a b =
+  let r = a / b in
+  if a mod b = 0 then
+    r
+  else
+    r + 1
+
+let tent_blur radius m =
+  box_blur (div_up radius 2) m;
+  box_blur (div_up radius 2) m
+
+let quadratic_blur radius m =
+  box_blur (div_up radius 3) m;
+  box_blur (div_up radius 3) m;
+  box_blur (div_up radius 3) m
 
 
 let make_purple_blur param w h m =
-  let rmax = truncate (ceil (2. *. param.radius)) in
-  let r0 = rmax / 10 in
-  let d0 = 2 * r0 + 1 in
-  (*printf "rmax=%i r0=%i d0=%i\n%!" rmax r0 d0;*)
-  let mask = gaussian_mask rmax param.radius in
+  let radius = truncate (ceil param.radius) in
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
-    if i mod d0 = 0 then
-      for j = 0 to h - 1 do
-        if j mod d0 = 0 then
-          let r, g, b, area =
-            average_window m
-              (max 0 (i - r0)) (min (w - 1) (i + r0))
-              (max 0 (j - r0)) (min (h - 1) (j + r0))
-          in
-          let p =
-            let thresh = param.min_brightness in
-            let white = (max 0. (b -. thresh)) *. 1. /. (1.-.thresh) in
-            area *. param.intensity *. white
-          in
-          for k1 = -rmax to rmax do
-            let mask1 = mask.(k1+rmax) in
-            let i' = i + k1 in
-            if i' >= 0 && i' < w then
-              let blur_i' = blur.(i') in
-              for k2 = -rmax to rmax do
-                let j' = j + k2 in
-                if j' >= 0 && j' < h then (
-                  let contrib = p *. Array.unsafe_get mask1 (k2+rmax) in
-                  (*printf "i=%i j=%i i'=%i j'=%i k1=%i k2=%i contrib=%g\n"
-                    i j i' j' k1 k2 contrib;*)
-                  blur_i'.(j') <- blur_i'.(j') +. contrib
-                )
-              done
-          done
-      done
+    for j = 0 to h - 1 do
+      let b = float (Rgb24.get m i j).b /. 255. in
+      let p =
+        let thresh = param.min_brightness in
+        let white = (max 0. (b -. thresh)) *. 1. /. (1.-.thresh) in
+        param.intensity *. white
+      in
+      blur.(i).(j) <- p
+    done
   done;
+  tent_blur radius blur;
   blur
 
 let remove_purple_blur param w h m purple_blur =
