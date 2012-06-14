@@ -2,6 +2,7 @@
 EXAMPLES = \
   wikipedia-horsie \
   butterfly \
+  dragonfly \
   eye \
   tree \
   snake \
@@ -18,8 +19,7 @@ EXAMPLES_OUT = $(addsuffix -fixed.jpg, $(EXAMPLES))
 EXAMPLES_DIFF = $(addsuffix -diff.jpg, $(EXAMPLES))
 
 examples: examples.html
-examples.html: $(EXAMPLES_IN) $(EXAMPLES_OUT) $(EXAMPLES_DIFF) \
-               Makefile make-examples.sh ../src/unpurple
+examples.html: $(EXAMPLES_IN) Makefile make-examples.sh ../src/unpurple
 	./make-examples.sh
 
 .PHONY: install
