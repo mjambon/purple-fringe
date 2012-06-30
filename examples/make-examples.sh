@@ -14,7 +14,8 @@ sample () {
     fi
 
     echo "\
-<tr><td style=\"text-align:right\">
+<table>
+<tr><td>
        <img src=\"$x.jpg\" alt=\"input\"
             title=\"Original photo\"></td>
     <td><img src=\"$x-fixed.jpg\" alt=\"output\"
@@ -25,8 +26,7 @@ $options
              title=\"Difference between original and final photo\">
     </td>
     </tr>
-<tr><td colspan=\"2\" class=\"spacer\"></td></tr>
-"
+</table>"
 }
 
 print () {
@@ -56,8 +56,8 @@ img.diff {
   border-width: 1px;
   border-color: #202020;
 }
-td.spacer {
-  padding-top: 50px;
+table {
+  margin-bottom: 40px;
 }
 </style>
 </head>
@@ -72,8 +72,6 @@ from digital photos.
 <p>
 In each example the default options are used unless otherwise indicated.
 </p>
-<table>
-<tr><td colspan=\"2\" class=\"spacer\"></td></tr>
 "
     sample wikipedia-horsie
     sample butterfly -minred 0.15
