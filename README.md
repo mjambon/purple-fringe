@@ -15,10 +15,8 @@ everyone to use.
 Examples
 --------
 
-Sample images before and after transformation are given in the
-`examples` directory. Click on individual `.jpg` and `-fixed.jpg`
-files, or `git clone git://github.com/mjambon/purple-fringe.git` and
-open `examples.html` in a browser.
+Sample images before and after transformation:
+http://mjambon.com/purple-fringe/examples.html
 
 To do
 -----
