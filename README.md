@@ -1,18 +1,27 @@
-Tool for removing purple fringes (axial chromatic aberration) 
+Unpurple
+========
+
+Unpurple is a tool for removing purple fringes (axial chromatic aberration)
 from digital photos using a heuristic of my own.
 
-There is an OCaml implementation which produces a standalone
-executable. It is fast enough (~ one second per megapixel) but loses
-Exif data and the JPEG compression factor is fixed at 75%.
+Currently there is an OCaml implementation which produces a standalone
+executable with a simple command-line interface.
+It is fast enough (~ one second per megapixel) but doesn't
+preserve Exif data and the JPEG compression factor is fixed at 75%.
+
+I would like to make a Gimp extension script or plugin for
+everyone to use.
+
+Examples
+--------
 
 Sample images before and after transformation are given in the
 `examples` directory. Click on individual `.jpg` and `-fixed.jpg`
 files, or `git clone git://github.com/mjambon/purple-fringe.git` and
 open `examples.html` in a browser.
 
-To do:
+To do
+-----
 
-* integrate this algorithm into Gimp for easier installation and more
-  usability
+* implement this algorithm as a Gimp script or plugin
 
-* test on more examples with natural blue and purple colors
