@@ -100,26 +100,24 @@ let tent_blur radius m =
   box_blur (div_up radius 2) m;
   box_blur (div_up radius 2) m
 
-let quadratic_blur radius m =
-  box_blur (div_up radius 3) m;
-  box_blur (div_up radius 3) m;
-  box_blur (div_up radius 3) m
-
-
 let make_purple_blur param w h m =
-  let radius = truncate (ceil param.radius) in
+  (* Use the blue component to define the intensity of the light
+     subject to unfocusing *)
   let blur = Array.make_matrix w h 0. in
   for i = 0 to w - 1 do
     for j = 0 to h - 1 do
       let b = float (Rgb24.get m i j).b /. 255. in
       let p =
         let thresh = param.min_brightness in
-        let white = (max 0. (b -. thresh)) *. 1. /. (1.-.thresh) in
-        param.intensity *. white
+        let grey_level = (max 0. (b -. thresh)) *. 1. /. (1.-.thresh) in
+        param.intensity *. grey_level
       in
       blur.(i).(j) <- p
     done
   done;
+  (* "Unfocus" using a blur algorithm. It doesn't have to be a perfect circular
+     blur. The radius specified is usually larger than needed anyway. *)
+  let radius = truncate (ceil param.radius) in
   tent_blur radius blur;
   blur
 
@@ -130,15 +128,10 @@ let remove_purple_blur param w h m purple_blur =
       let { r; g; b } = Rgb24.get m i j in
       let bl = min 255. (255. *. purple_blur.(i).(j)) in
 
-(*
-      let b_diff = min bl (max (b - g) 0) in
-      let r_diff = min (max (r - g) 0) (b_diff / 3) in
-*)
-
       (* amount of blue and red that would produce a grey if removed *)
       let db = max (float b -. float g) 0. in
       let dr = max (float r -. float g) 0. in
-      
+
       (* maximum amount of blue that we accept to remove, ignoring red level *)
       let mb = min bl db in
 
@@ -224,6 +217,11 @@ let main () =
     "-maxred", Arg.Set_float max_red_to_blue_ratio,
     sprintf "<float>  Maximum red:blue ratio in the fringe (default: %g)"
       !max_red_to_blue_ratio;
+
+    "-gentle", Arg.Unit (fun () ->
+                           min_brightness := 0.8;
+                           min_red_to_blue_ratio := 0.15),
+    " Same as -m 0.8 -minred 0.15";
 
     "-diff", Arg.Unit (fun () -> mode := Diff),
     "Output purple mask that would be substracted to the original image";
