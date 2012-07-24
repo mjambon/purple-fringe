@@ -76,6 +76,7 @@ In each example the default options are used unless otherwise indicated.
     sample wikipedia-horsie
     sample butterfly -minred 0.15
     sample dragonfly
+    sample turkey-vulture
     sample eye
     sample tree
     sample snake

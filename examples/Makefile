@@ -2,6 +2,7 @@
 EXAMPLES = \
   wikipedia-horsie \
   butterfly \
+  turkey-vulture \
   dragonfly \
   eye \
   tree \
