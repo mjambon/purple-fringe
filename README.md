@@ -15,9 +15,6 @@ everyone to use.
 Examples
 --------
 
-Sample images before and after transformation:
-https://mjambon.github.io/mjambon2016/purple-fringe/examples.html
-
 Before:
 
 [<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie.jpg" alt="Before"/>]()
@@ -25,3 +22,9 @@ Before:
 After:
 
 [<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie-fixed.jpg" alt="After"/>]()
+
+Difference:
+
+[<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie-diff.jpg" alt="Difference"/>]()
+
+More examples: https://mjambon.github.io/mjambon2016/purple-fringe/examples.html
