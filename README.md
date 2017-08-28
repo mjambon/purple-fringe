@@ -27,7 +27,7 @@ Difference:
 
 [<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie-diff.jpg" alt="Difference"/>]()
 
-More examples: https://mjambon.github.io/mjambon2016/purple-fringe/examples.html
+[More examples](https://mjambon.github.io/mjambon2016/purple-fringe/examples.html)
 
 Algorithm outline
 -----------------
