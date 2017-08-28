@@ -36,4 +36,6 @@ Algorithm outline
 2. Subtract from the original image some amount of blue and red based on the intensities found in the blurred mask, using the following constraints:
    * Blue level may not drop below green level.
    * Red level may not drop below green level.
-   * Red:blue ratio may not drop below some constant (default: 0.33).
+   * Red:blue ratio may not drop below some constant.
+
+Please refer to the implementation for details and default parameters.
