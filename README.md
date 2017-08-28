@@ -16,10 +16,12 @@ Examples
 --------
 
 Sample images before and after transformation:
-http://mjambon.com/purple-fringe/examples.html
+https://mjambon.github.io/mjambon2016/purple-fringe/examples.html
 
-To do
------
+Before:
 
-* implement this algorithm as a Gimp script or plugin
+[<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie.jpg" alt="Before"/>]()
 
+After:
+
+[<img src="https://mjambon.github.io/mjambon2016/purple-fringe/wikipedia-horsie-fixed.jpg" alt="After"/>]()
