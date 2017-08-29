@@ -9,8 +9,7 @@ executable with a simple command-line interface.
 It is fast enough (~ one second per megapixel) but doesn't
 preserve Exif data and the JPEG compression factor is fixed at 75%.
 
-I would like to make a Gimp extension script or plugin for
-everyone to use.
+I gave up on the gimp integration, but if it's up for grabs if anyone is interested.
 
 Example
 -------
