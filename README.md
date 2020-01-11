@@ -4,12 +4,17 @@ Unpurple
 Unpurple is a tool for removing purple fringes (axial chromatic aberration)
 from digital photos using a heuristic of my own.
 
-Currently there is an OCaml implementation which produces a standalone
+This is the original OCaml implementation which produces a standalone
 executable with a simple command-line interface.
 It is fast enough (~ one second per megapixel) but doesn't
 preserve Exif data and the JPEG compression factor is fixed at 75%.
 
-I gave up on the gimp integration, but if it's up for grabs if anyone is interested.
+Unpurple was
+[ported](https://github.com/dtschump/gmic-community/blob/master/include/stanislav_paskalev.gmic)
+to [G'MIC](https://gmic.eu/)
+by [Stanislav Paskalev](https://github.com/solarsea), allowing its use from
+[GIMP](https://www.gimp.org/) and other image-manipulation software.
+🎉
 
 Example
 -------
