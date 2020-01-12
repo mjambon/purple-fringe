@@ -63,7 +63,7 @@ with an algorithm required:
 It is useful, or perhaps critical, to understand why mixing blue and
 red dots produces a perception of purple, even though none of the
 light emitted from blue and red dots needs to have the wavelength of
-the purple band of the rainbow.
+the purple band of the rainbow. School and Wikipedia are your friends.
 
 Here's my mental model of purple fringing, which may be inacurrate but
 turned out to be good enough. It may not work as well or at all for
@@ -77,7 +77,7 @@ short wavelengths (purple and ultraviolet) which end up very blurred out.
 It is also possible that UV light is captured as purple by the sensor
 of a digital camera. As a result, black objects on a white background
 will exhibit a purple fringe all around. Note that this is different
-other types of chromatic aberration, where some objects have a red
+then some other types of chromatic aberration, where some objects have a red
 margin on one side and a blue margin on the other side.
 
 Now for the method. The problem of removing the purple fringe is
@@ -91,7 +91,7 @@ instead of trying to locate a purple fringe in the hope of removing
 it, we create a purple fringe from the image which already has a
 purple fringe.
 This involves selecting the blue-purple component of the image, which
-is a combination of blue and red within at some acceptable ratio and
+is a combination of blue and red within some acceptable ratio and
 blurring it. The result is a mask that if added to the original image
 would produce a purple fringe roughly like the one we want to remove.
 What remains to do is somehow subtract this approximate artificial
